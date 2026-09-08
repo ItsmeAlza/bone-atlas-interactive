@@ -343,6 +343,13 @@ const PHX_LABEL = ["Proximal", "Middle", "Distal"] as const;
 const PHX_KEY = ["proximal", "middle", "distal"] as const;
 const PHX_W = [3, 2.6, 2.3];
 
+/** builds a phalanx shaft from a [x1,y1,x2,y2] segment */
+const phalanxPath = (seg: number[], pi: number, slim: number) => {
+  const [x1 = 0, y1 = 0, x2 = 0, y2 = 0] = seg;
+  const w = (PHX_W[pi] ?? 2.4) - slim;
+  return shaft(x1, y1, w, x2, y2, w - 0.4);
+};
+
 fingerPhalanx.forEach((digit, di) => {
   digit.forEach((seg, pi) => {
     if (!seg) return;
@@ -502,7 +509,7 @@ const sideShapes: BoneShape[] = side.flatMap((b) =>
     region: b.region,
     side: s,
     category: b.category,
-    parentId: b.parentBase ? `${s}-${b.parentBase}` : undefined,
+    ...(b.parentBase ? { parentId: `${s}-${b.parentBase}` } : {}),
     d: b.d,
     mirrored: s === "left",
   })),
