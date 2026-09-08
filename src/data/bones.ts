@@ -352,7 +352,7 @@ fingerPhalanx.forEach((digit, di) => {
       region: "hand",
       category: "phalanx",
       parentBase: `metacarpal-${di + 1}`,
-      d: shaft(seg[0], seg[1], PHX_W[pi], seg[2], seg[3], PHX_W[pi] - 0.4),
+      d: phalanxPath(seg, pi, 0),
     });
   });
 });
@@ -469,7 +469,7 @@ toePhalanx.forEach((toe, di) => {
       region: "foot",
       category: "phalanx",
       parentBase: `metatarsal-${di + 1}`,
-      d: shaft(seg[0], seg[1], PHX_W[pi] - 0.2, seg[2], seg[3], PHX_W[pi] - 0.6),
+      d: phalanxPath(seg, pi, 0.2),
     });
   });
 });
