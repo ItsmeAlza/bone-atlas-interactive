@@ -27,3 +27,36 @@ npm run dev
 - TypeScript
 - React
 - Tailwind CSS
+
+## Interactive Skeleton
+
+Run locally:
+
+```bash
+bun install
+bun run dev   # http://localhost:8080
+```
+
+File structure:
+
+```
+src/data/bones.ts                        bone metadata + SVG geometry (single source of truth)
+src/data/clinical.ts                     clinical record types for future medical data
+src/components/skeleton/Bone.tsx         reusable, stateless <Bone /> (one <path> per bone)
+src/components/skeleton/Skeleton.tsx     region groups; left side is a mirrored group
+src/components/skeleton/SkeletonViewer.tsx  zoom / pan / tooltip wrapper
+src/components/skeleton/useBoneSelection.ts selection state hook (multi-select + toggle)
+src/routes/index.tsx                     example usage: search, region filter, selected list
+```
+
+Example usage:
+
+```tsx
+const { selectedIds, toggle } = useBoneSelection();
+
+<SkeletonViewer
+  selectedIds={selectedIds}
+  disabledIds={[]}
+  onBoneClick={(bone) => toggle(bone.id)}   // { id, name, region, side, category }
+/>;
+```
