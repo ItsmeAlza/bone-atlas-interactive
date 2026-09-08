@@ -84,7 +84,6 @@ export function SkeletonViewer({ onBoneHover, ...skeletonProps }: ViewerProps) {
           className="skeleton-svg"
           style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}
           aria-label="Interactive human skeleton"
-philosophy-role="img"
         >
           <Skeleton {...skeletonProps} onBoneHover={handleHover} />
         </svg>
