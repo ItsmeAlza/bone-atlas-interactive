@@ -43,20 +43,21 @@ const M = 200; // midline
 /* geometry helpers                                                    */
 /* ------------------------------------------------------------------ */
 
-const n = (v: number) => Math.round(v * 100) / 100;
+export const n = (v: number) => Math.round(v * 100) / 100;
 
 /** rounded blob (ellipse-like) */
-const blob = (cx: number, cy: number, rx: number, ry: number) =>
+export const blob = (cx: number, cy: number, rx: number, ry: number) =>
   `M${n(cx - rx)},${n(cy)} a${n(rx)},${n(ry)} 0 1 0 ${n(rx * 2)},0 a${n(rx)},${n(ry)} 0 1 0 ${n(-rx * 2)},0 Z`;
 
 /** tapered shaft between two points with half-widths w1/w2 */
-const shaft = (x1: number, y1: number, w1: number, x2: number, y2: number, w2: number) => {
+export const shaft = (x1: number, y1: number, w1: number, x2: number, y2: number, w2: number) => {
   const my = (y1 + y2) / 2;
   return (
     `M${n(x1 - w1)},${n(y1)} C${n(x1 - w1 - 1)},${n(my)} ${n(x2 - w2 - 1)},${n(my)} ${n(x2 - w2)},${n(y2)} ` +
-    `L${n(x2 + w2)},${n(y2)} C${n(x2 + w2 + 1)},${n(my)} ${n(x1 + w1 + 1)},${n(my)} ${n(x1 + w1)},${n(y1)} Z`
+    `L${n(x2 + w2)},${n(y2)} C${n(x2 + w2 + 1)},${n(my)} ${n(x1 + w1 + 1)},${n(y1 + (my - y1) * 0.2)} ${n(x1 + w1)},${n(y1)} Z`
   );
 };
+
 
 /** vertebral body seen from the front */
 const vertebra = (y: number, w: number, h: number) =>
