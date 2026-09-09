@@ -1,10 +1,14 @@
 import type { MouseEvent } from "react";
-import { BONES, VIEWBOX, type BoneRegion, type BoneShape } from "@/data/bones";
+import { BONE_MAP, VIEWBOX, type BoneRegion, type BoneShape } from "@/data/bones";
+import { getViewShapes } from "@/data/skeletonViews";
+import type { SkeletonView, ViewShape } from "@/types/bone";
 import { Bone } from "./Bone";
 
 export type SkeletonProps = {
+  view?: SkeletonView;
   selectedIds: string[];
   disabledIds?: string[];
+  flaggedIds?: string[];
   highlightedId?: string | null;
   onBoneClick: (bone: BoneShape) => void;
   onBoneHover?: (bone: BoneShape | null, event?: MouseEvent) => void;
@@ -21,22 +25,37 @@ const REGION_ORDER: BoneRegion[] = [
   "foot",
 ];
 
+type Resolved = { shape: ViewShape; bone: BoneShape };
+
 function RegionGroup({
   region,
-  bones,
-  ...rest
-}: { region: BoneRegion; bones: BoneShape[] } & Omit<SkeletonProps, "onBoneHover"> & {
-    onBoneHover?: SkeletonProps["onBoneHover"];
-  }) {
-  const { selectedIds, disabledIds = [], highlightedId, onBoneClick, onBoneHover } = rest;
+  items,
+  props,
+}: {
+  region: BoneRegion;
+  items: Resolved[];
+  props: SkeletonProps;
+}) {
+  const {
+    view = "anterior",
+    selectedIds,
+    disabledIds = [],
+    flaggedIds = [],
+    highlightedId,
+    onBoneClick,
+    onBoneHover,
+  } = props;
   return (
     <g data-region-group={region}>
-      {bones.map((bone) => (
+      {items.map(({ shape, bone }) => (
         <Bone
-          key={bone.id}
+          key={`${shape.layer}-${bone.id}`}
           bone={bone}
+          d={shape.d}
+          view={view}
           selected={selectedIds.includes(bone.id)}
           disabled={disabledIds.includes(bone.id)}
+          flagged={flaggedIds.includes(bone.id)}
           highlighted={highlightedId === bone.id}
           onSelect={onBoneClick}
           onHoverStart={(b, e) => onBoneHover?.(b, e)}
@@ -48,37 +67,51 @@ function RegionGroup({
 }
 
 function Layer({
-  bones,
+  items,
   mirrored,
   props,
+  label,
 }: {
-  bones: BoneShape[];
+  items: Resolved[];
   mirrored: boolean;
   props: SkeletonProps;
+  label: string;
 }) {
+  if (!items.length) return null;
   return (
     <g
       transform={mirrored ? `translate(${VIEWBOX.width},0) scale(-1,1)` : undefined}
-      data-layer={mirrored ? "left" : "right-and-midline"}
+      data-layer={label}
     >
       {REGION_ORDER.map((region) => {
-        const regionBones = bones.filter((b) => b.region === region);
-        if (!regionBones.length) return null;
-        return <RegionGroup key={region} region={region} bones={regionBones} {...props} />;
+        const regionItems = items.filter((i) => i.bone.region === region);
+        if (!regionItems.length) return null;
+        return <RegionGroup key={region} region={region} items={regionItems} props={props} />;
       })}
     </g>
   );
 }
 
-/** The full skeleton: every bone is its own <path> with a unique DOM id. */
+/**
+ * Renders one anatomical view. Every bone is its own <path>, carrying the
+ * view-independent anatomical id in `data-bone-id`.
+ */
 export function Skeleton(props: SkeletonProps) {
-  const rightAndMid = BONES.filter((b) => !b.mirrored);
-  const left = BONES.filter((b) => b.mirrored);
+  const view = props.view ?? "anterior";
+  const resolved: Resolved[] = getViewShapes(view)
+    .map((shape) => ({ shape, bone: BONE_MAP[shape.id] }))
+    .filter((r): r is Resolved => Boolean(r.bone));
+
+  const far = resolved.filter((r) => r.shape.layer === "far");
+  const near = resolved.filter((r) => r.shape.layer === "near");
 
   return (
-    <g role="group" aria-label="Human skeleton">
-      <Layer bones={rightAndMid} mirrored={false} props={props} />
-      <Layer bones={left} mirrored props={props} />
+    <g role="group" aria-label={`Human skeleton — ${view.replace("-", " ")} view`} data-view={view}>
+      <g className="bone-layer-far">
+        <Layer items={far} mirrored={false} props={props} label="far" />
+      </g>
+      <Layer items={near.filter((r) => !r.shape.mirrored)} mirrored={false} props={props} label="primary" />
+      <Layer items={near.filter((r) => r.shape.mirrored)} mirrored props={props} label="mirrored" />
     </g>
   );
 }
