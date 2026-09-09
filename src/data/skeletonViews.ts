@@ -225,7 +225,7 @@ function buildLateral(face: 1 | -1, nearSide: "left" | "right"): ViewShape[] {
   const lumbOff = (i: number) => -6 + Math.sin(((i + 0.5) / 5) * Math.PI) * 14 + i * 1.5;
 
   for (let i = 0; i < 7; i++)
-    push(`c${i + 1}`, latVert(126 + i * 9, cervOff(i), 6.5, 7, 9 * face === 0 ? 9 : 9));
+    push(`c${i + 1}`, latVert(126 + i * 9, cervOff(i), 6.5, 7, 9));
   for (let i = 0; i < 12; i++) push(`t${i + 1}`, latVert(192 + i * 12, thorOff(i), 8.5, 10, 13));
   for (let i = 0; i < 5; i++) push(`l${i + 1}`, latVert(336 + i * 14, lumbOff(i), 10.5, 12, 14));
 
