@@ -54,7 +54,7 @@ export const shaft = (x1: number, y1: number, w1: number, x2: number, y2: number
   const my = (y1 + y2) / 2;
   return (
     `M${n(x1 - w1)},${n(y1)} C${n(x1 - w1 - 1)},${n(my)} ${n(x2 - w2 - 1)},${n(my)} ${n(x2 - w2)},${n(y2)} ` +
-    `L${n(x2 + w2)},${n(y2)} C${n(x2 + w2 + 1)},${n(my)} ${n(x1 + w1 + 1)},${n(y1 + (my - y1) * 0.2)} ${n(x1 + w1)},${n(y1)} Z`
+    `L${n(x2 + w2)},${n(y2)} C${n(x2 + w2 + 1)},${n(my)} ${n(x1 + w1 + 1)},${n(my)} ${n(x1 + w1)},${n(y1)} Z`
   );
 };
 
