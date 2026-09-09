@@ -1,11 +1,17 @@
 import type { KeyboardEvent, MouseEvent } from "react";
-import type { BoneShape } from "@/data/bones";
+import type { BoneShape, SkeletonView } from "@/types/bone";
 
 export type BoneProps = {
   bone: BoneShape;
+  /** view-specific geometry; falls back to the anterior geometry in the metadata */
+  d?: string;
+  /** which anatomical view this instance belongs to (metadata only — the id never changes) */
+  view?: SkeletonView;
   selected: boolean;
   disabled?: boolean;
   highlighted?: boolean;
+  /** clinical flag, e.g. a fracture recorded against this bone id */
+  flagged?: boolean;
   onSelect: (bone: BoneShape) => void;
   onHoverStart?: (bone: BoneShape, event: MouseEvent) => void;
   onHoverEnd?: (bone: BoneShape) => void;
@@ -13,13 +19,16 @@ export type BoneProps = {
 
 /**
  * A single, independently addressable bone. Holds no selection state:
- * everything is driven by props from the owning <Skeleton />.
+ * everything is driven by props from the owning skeleton view.
  */
 export function Bone({
   bone,
+  d,
+  view = "anterior",
   selected,
   disabled = false,
   highlighted = false,
+  flagged = false,
   onSelect,
   onHoverStart,
   onHoverEnd,
@@ -34,16 +43,18 @@ export function Bone({
 
   return (
     <path
-      id={bone.id}
+      id={`${view}-${bone.id}`}
       data-bone-id={bone.id}
+      data-view={view}
       data-region={bone.region}
       data-side={bone.side}
-      d={bone.d}
+      d={d ?? bone.d}
       className={[
         "bone",
         selected ? "is-selected" : "",
         disabled ? "is-disabled" : "",
         highlighted ? "is-highlighted" : "",
+        flagged ? "is-flagged" : "",
       ]
         .filter(Boolean)
         .join(" ")}
