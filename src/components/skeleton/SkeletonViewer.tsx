@@ -1,8 +1,12 @@
 import { useCallback, useRef, useState, type MouseEvent, type WheelEvent } from "react";
 import { VIEWBOX, type BoneShape } from "@/data/bones";
-import { Skeleton, type SkeletonProps } from "./Skeleton";
+import type { SkeletonView as View } from "@/types/bone";
+import type { SkeletonProps } from "./Skeleton";
+import { SkeletonView } from "./SkeletonView";
+import { BoneTooltip } from "./BoneTooltip";
 
-type ViewerProps = Omit<SkeletonProps, "onBoneHover"> & {
+type ViewerProps = Omit<SkeletonProps, "onBoneHover" | "view"> & {
+  view?: View;
   onBoneHover?: (bone: BoneShape | null) => void;
 };
 
@@ -10,16 +14,16 @@ const MIN = 0.5;
 const MAX = 6;
 
 /** Zoom + pan wrapper around the skeleton, with a hover tooltip. */
-export function SkeletonViewer({ onBoneHover, ...skeletonProps }: ViewerProps) {
-  const [view, setView] = useState({ scale: 1, x: 0, y: 0 });
+export function SkeletonViewer({ onBoneHover, view = "anterior", ...skeletonProps }: ViewerProps) {
+  const [zoom, setZoom] = useState({ scale: 1, x: 0, y: 0 });
   const [tooltip, setTooltip] = useState<{ name: string; x: number; y: number } | null>(null);
   const dragging = useRef<{ x: number; y: number } | null>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
 
   const zoomBy = (factor: number) =>
-    setView((v) => ({ ...v, scale: Math.min(MAX, Math.max(MIN, v.scale * factor)) }));
+    setZoom((v) => ({ ...v, scale: Math.min(MAX, Math.max(MIN, v.scale * factor)) }));
 
-  const reset = () => setView({ scale: 1, x: 0, y: 0 });
+  const reset = () => setZoom({ scale: 1, x: 0, y: 0 });
 
   const onWheel = (e: WheelEvent) => {
     if (!e.ctrlKey && Math.abs(e.deltaY) < 1) return;
@@ -27,11 +31,11 @@ export function SkeletonViewer({ onBoneHover, ...skeletonProps }: ViewerProps) {
   };
 
   const onPointerDown = (e: MouseEvent) => {
-    dragging.current = { x: e.clientX - view.x, y: e.clientY - view.y };
+    dragging.current = { x: e.clientX - zoom.x, y: e.clientY - zoom.y };
   };
   const onPointerMove = (e: MouseEvent) => {
     if (!dragging.current) return;
-    setView((v) => ({ ...v, x: e.clientX - dragging.current!.x, y: e.clientY - dragging.current!.y }));
+    setZoom((v) => ({ ...v, x: e.clientX - dragging.current!.x, y: e.clientY - dragging.current!.y }));
   };
   const endDrag = () => {
     dragging.current = null;
@@ -65,7 +69,7 @@ export function SkeletonViewer({ onBoneHover, ...skeletonProps }: ViewerProps) {
         <button type="button" onClick={reset} className="tool-btn tool-btn-wide">
           Reset
         </button>
-        <span className="zoom-readout">{Math.round(view.scale * 100)}%</span>
+        <span className="zoom-readout">{Math.round(zoom.scale * 100)}%</span>
       </div>
 
       <div
@@ -82,17 +86,16 @@ export function SkeletonViewer({ onBoneHover, ...skeletonProps }: ViewerProps) {
         <svg
           viewBox={`0 0 ${VIEWBOX.width} ${VIEWBOX.height}`}
           className="skeleton-svg"
-          style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}
-          aria-label="Interactive human skeleton"
+          style={{ transform: `translate(${zoom.x}px, ${zoom.y}px) scale(${zoom.scale})` }}
+          aria-label={`Interactive human skeleton, ${view.replace("-", " ")} view`}
         >
-          <Skeleton {...skeletonProps} onBoneHover={handleHover} />
+          {/* keyed on the view so switching swaps geometry cleanly and fades in */}
+          <g key={view} className="view-fade">
+            <SkeletonView view={view} {...skeletonProps} onBoneHover={handleHover} />
+          </g>
         </svg>
 
-        {tooltip && (
-          <div className="bone-tooltip" style={{ left: tooltip.x + 14, top: tooltip.y + 12 }} role="status">
-            {tooltip.name}
-          </div>
-        )}
+        {tooltip && <BoneTooltip name={tooltip.name} x={tooltip.x} y={tooltip.y} />}
       </div>
       <p className="stage-hint">Drag to pan · scroll to zoom · Tab + Enter to select with the keyboard</p>
     </div>

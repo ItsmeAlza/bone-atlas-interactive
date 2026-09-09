@@ -290,6 +290,61 @@
     color: var(--color-muted-foreground);
   }
 
+  .view-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0.6rem 0.8rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .view-btn {
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-muted-foreground);
+    transition:
+      background 0.15s,
+      color 0.15s;
+  }
+  .view-btn:hover {
+    background: var(--color-secondary);
+    color: var(--color-foreground);
+  }
+  .view-btn.is-on {
+    background: var(--color-primary, var(--color-accent));
+    color: var(--color-primary-foreground, var(--color-accent-foreground));
+    border-color: transparent;
+  }
+
+  .bone-layer-far {
+    opacity: 0.42;
+  }
+
+  .view-fade {
+    animation: view-fade-in 0.22s ease-out;
+  }
+  @keyframes view-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .view-fade {
+      animation: none;
+    }
+  }
+
+  .bone.is-flagged {
+    fill: var(--color-destructive, oklch(0.6 0.19 25));
+  }
+
+
   .skeleton-canvas {
     position: relative;
     flex: 1;

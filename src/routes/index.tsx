@@ -1,23 +1,26 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { SkeletonViewer } from "@/components/skeleton/SkeletonViewer";
+import { ViewSelector } from "@/components/skeleton/ViewSelector";
 import { useBoneSelection } from "@/components/skeleton/useBoneSelection";
 import { BONES, REGIONS, searchBones, type BoneRegion, type BoneShape } from "@/data/bones";
+import { getViewBoneIds } from "@/data/skeletonViews";
+import type { SkeletonView } from "@/types/bone";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Interactive Human Skeleton — Clickable Bone Map" },
+      { title: "Interactive Human Skeleton — Four Anatomical Views" },
       {
         name: "description",
         content:
-          "An anatomical bone map where every one of the 200+ human bones is an individually clickable, searchable and keyboard-accessible SVG element.",
+          "An anatomical bone map with anterior, posterior and lateral views where every one of the 200+ human bones is an individually clickable, searchable and keyboard-accessible SVG element.",
       },
-      { property: "og:title", content: "Interactive Human Skeleton — Clickable Bone Map" },
+      { property: "og:title", content: "Interactive Human Skeleton — Four Anatomical Views" },
       {
         property: "og:description",
         content:
-          "Select single or multiple bones, search by name, filter by region, zoom and pan an anatomically laid-out SVG skeleton.",
+          "Select single or multiple bones, search by name, filter by region, switch between anterior, posterior and lateral views, zoom and pan.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -26,12 +29,23 @@ export const Route = createFileRoute("/")({
   component: SkeletonPage,
 });
 
+const VIEW_LABEL: Record<SkeletonView, string> = {
+  anterior: "anterior view",
+  posterior: "posterior view",
+  "left-lateral": "left lateral view",
+  "right-lateral": "right lateral view",
+};
+
 function SkeletonPage() {
+  // selection is anatomical, never per-view
   const { selectedIds, selectedBones, toggle, clear } = useBoneSelection();
+  const [view, setView] = useState<SkeletonView>("anterior");
   const [query, setQuery] = useState("");
   const [region, setRegion] = useState<BoneRegion | "all">("all");
   const [hovered, setHovered] = useState<BoneShape | null>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
+
+  const visibleIds = useMemo(() => new Set(getViewBoneIds(view)), [view]);
 
   const disabledIds = useMemo(
     () => (region === "all" ? [] : BONES.filter((b) => b.region !== region).map((b) => b.id)),
@@ -41,13 +55,14 @@ function SkeletonPage() {
   const results = useMemo(() => searchBones(query), [query]);
 
   const handleBoneClick = (bone: BoneShape) => {
-    // Example callback payload — { id, name, region, side, category }
+    // Example callback payload — { id, name, region, side, category, view }
     console.log("onBoneClick", {
       id: bone.id,
       name: bone.name,
       region: bone.region,
       side: bone.side,
       category: bone.category,
+      view,
     });
     toggle(bone.id);
   };
@@ -58,7 +73,8 @@ function SkeletonPage() {
         <div>
           <h1 className="app-title">Interactive Human Skeleton</h1>
           <p className="app-subtitle">
-            {BONES.length} independently selectable bones · anterior view
+            {BONES.length} independently selectable bones · {VIEW_LABEL[view]} ·{" "}
+            {visibleIds.size} visible here
           </p>
         </div>
         <div className="header-actions">
@@ -71,7 +87,9 @@ function SkeletonPage() {
 
       <main className="app-main">
         <section className="stage-panel" aria-label="Skeleton diagram">
+          <ViewSelector value={view} onChange={setView} />
           <SkeletonViewer
+            view={view}
             selectedIds={selectedIds}
             disabledIds={disabledIds}
             highlightedId={highlightedId}
@@ -79,6 +97,7 @@ function SkeletonPage() {
             onBoneHover={setHovered}
           />
         </section>
+
 
         <aside className="side-panel">
           <div className="panel-block">
