@@ -27,6 +27,10 @@ export type Bone = {
   side: BoneSide;
   category: string;
   parentId?: string;
+  /** "bone" unless this is a developmental structure (physis, fontanelle, …). */
+  structureType?: "bone" | "physis" | "ossification-center" | "fontanelle";
+  /** age groups in which this structure exists at all; omitted = every age group */
+  ageGroups?: readonly ("infant" | "child" | "adolescent" | "adult")[];
 };
 
 export type BoneShape = Bone & {
