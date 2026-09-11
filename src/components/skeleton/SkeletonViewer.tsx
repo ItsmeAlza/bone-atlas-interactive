@@ -49,7 +49,7 @@ export function SkeletonViewer({
   };
 
   const handleHover = useCallback(
-    (bone: BoneShape | null, event?: MouseEvent) => {
+    (bone: AnatomicalStructure | null, event?: MouseEvent) => {
       onBoneHover?.(bone);
       if (!bone) return setTooltip(null);
       const rect = wrapRef.current?.getBoundingClientRect();
@@ -94,11 +94,16 @@ export function SkeletonViewer({
           viewBox={`0 0 ${VIEWBOX.width} ${VIEWBOX.height}`}
           className="skeleton-svg"
           style={{ transform: `translate(${zoom.x}px, ${zoom.y}px) scale(${zoom.scale})` }}
-          aria-label={`Interactive human skeleton, ${view.replace("-", " ")} view`}
+          aria-label={`Interactive human skeleton, ${ageGroup}, ${view.replace("-", " ")} view`}
         >
           {/* keyed on the view so switching swaps geometry cleanly and fades in */}
-          <g key={view} className="view-fade">
-            <SkeletonView view={view} {...skeletonProps} onBoneHover={handleHover} />
+          <g key={`${ageGroup}-${view}`} className="view-fade">
+            <SkeletonView
+              view={view}
+              ageGroup={ageGroup}
+              {...skeletonProps}
+              onBoneHover={handleHover}
+            />
           </g>
         </svg>
 
