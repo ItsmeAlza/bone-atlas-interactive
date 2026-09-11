@@ -1,20 +1,27 @@
 import { useCallback, useRef, useState, type MouseEvent, type WheelEvent } from "react";
-import { VIEWBOX, type BoneShape } from "@/data/bones";
-import type { SkeletonView as View } from "@/types/bone";
+import { VIEWBOX } from "@/data/bones";
+import type { AnatomicalStructure } from "@/data/anatomy";
+import type { SkeletonAgeGroup, SkeletonView as View } from "@/types/bone";
 import type { SkeletonProps } from "./Skeleton";
 import { SkeletonView } from "./SkeletonView";
 import { BoneTooltip } from "./BoneTooltip";
 
 type ViewerProps = Omit<SkeletonProps, "onBoneHover" | "view"> & {
   view?: View;
-  onBoneHover?: (bone: BoneShape | null) => void;
+  ageGroup?: SkeletonAgeGroup;
+  onBoneHover?: (bone: AnatomicalStructure | null) => void;
 };
 
 const MIN = 0.5;
 const MAX = 6;
 
 /** Zoom + pan wrapper around the skeleton, with a hover tooltip. */
-export function SkeletonViewer({ onBoneHover, view = "anterior", ...skeletonProps }: ViewerProps) {
+export function SkeletonViewer({
+  onBoneHover,
+  view = "anterior",
+  ageGroup = "adult",
+  ...skeletonProps
+}: ViewerProps) {
   const [zoom, setZoom] = useState({ scale: 1, x: 0, y: 0 });
   const [tooltip, setTooltip] = useState<{ name: string; x: number; y: number } | null>(null);
   const dragging = useRef<{ x: number; y: number } | null>(null);
