@@ -1,7 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
-import { BONE_MAP, type BoneShape } from "@/data/bones";
+import { ANATOMY_MAP, type AnatomicalStructure } from "@/data/anatomy";
 
-/** Selection state lives here — never inside a <Bone />. */
+/**
+ * Selection is ANATOMICAL: it survives view changes and age-group changes,
+ * because it only ever holds anatomical ids.
+ */
 export function useBoneSelection(initial: string[] = []) {
   const [selectedIds, setSelectedIds] = useState<string[]>(initial);
 
@@ -18,7 +21,7 @@ export function useBoneSelection(initial: string[] = []) {
   const clear = useCallback(() => setSelectedIds([]), []);
 
   const selectedBones = useMemo(
-    () => selectedIds.map((id) => BONE_MAP[id]).filter(Boolean) as BoneShape[],
+    () => selectedIds.map((id) => ANATOMY_MAP[id]).filter(Boolean) as AnatomicalStructure[],
     [selectedIds],
   );
 

@@ -1,20 +1,27 @@
 import { useCallback, useRef, useState, type MouseEvent, type WheelEvent } from "react";
-import { VIEWBOX, type BoneShape } from "@/data/bones";
-import type { SkeletonView as View } from "@/types/bone";
+import { VIEWBOX } from "@/data/bones";
+import type { AnatomicalStructure } from "@/data/anatomy";
+import type { SkeletonAgeGroup, SkeletonView as View } from "@/types/bone";
 import type { SkeletonProps } from "./Skeleton";
 import { SkeletonView } from "./SkeletonView";
 import { BoneTooltip } from "./BoneTooltip";
 
 type ViewerProps = Omit<SkeletonProps, "onBoneHover" | "view"> & {
   view?: View;
-  onBoneHover?: (bone: BoneShape | null) => void;
+  ageGroup?: SkeletonAgeGroup;
+  onBoneHover?: (bone: AnatomicalStructure | null) => void;
 };
 
 const MIN = 0.5;
 const MAX = 6;
 
 /** Zoom + pan wrapper around the skeleton, with a hover tooltip. */
-export function SkeletonViewer({ onBoneHover, view = "anterior", ...skeletonProps }: ViewerProps) {
+export function SkeletonViewer({
+  onBoneHover,
+  view = "anterior",
+  ageGroup = "adult",
+  ...skeletonProps
+}: ViewerProps) {
   const [zoom, setZoom] = useState({ scale: 1, x: 0, y: 0 });
   const [tooltip, setTooltip] = useState<{ name: string; x: number; y: number } | null>(null);
   const dragging = useRef<{ x: number; y: number } | null>(null);
@@ -42,7 +49,7 @@ export function SkeletonViewer({ onBoneHover, view = "anterior", ...skeletonProp
   };
 
   const handleHover = useCallback(
-    (bone: BoneShape | null, event?: MouseEvent) => {
+    (bone: AnatomicalStructure | null, event?: MouseEvent) => {
       onBoneHover?.(bone);
       if (!bone) return setTooltip(null);
       const rect = wrapRef.current?.getBoundingClientRect();
@@ -87,11 +94,16 @@ export function SkeletonViewer({ onBoneHover, view = "anterior", ...skeletonProp
           viewBox={`0 0 ${VIEWBOX.width} ${VIEWBOX.height}`}
           className="skeleton-svg"
           style={{ transform: `translate(${zoom.x}px, ${zoom.y}px) scale(${zoom.scale})` }}
-          aria-label={`Interactive human skeleton, ${view.replace("-", " ")} view`}
+          aria-label={`Interactive human skeleton, ${ageGroup}, ${view.replace("-", " ")} view`}
         >
           {/* keyed on the view so switching swaps geometry cleanly and fades in */}
-          <g key={view} className="view-fade">
-            <SkeletonView view={view} {...skeletonProps} onBoneHover={handleHover} />
+          <g key={`${ageGroup}-${view}`} className="view-fade">
+            <SkeletonView
+              view={view}
+              ageGroup={ageGroup}
+              {...skeletonProps}
+              onBoneHover={handleHover}
+            />
           </g>
         </svg>
 
