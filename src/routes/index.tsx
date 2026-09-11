@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { AgeGroupSelector } from "@/components/skeleton/AgeGroupSelector";
 import { SkeletonViewer } from "@/components/skeleton/SkeletonViewer";
 import { ViewSelector } from "@/components/skeleton/ViewSelector";
 import { useBoneSelection } from "@/components/skeleton/useBoneSelection";
-import { BONES, REGIONS, searchBones, type BoneRegion, type BoneShape } from "@/data/bones";
-import { getViewBoneIds } from "@/data/skeletonViews";
-import type { SkeletonView } from "@/types/bone";
+import { ANATOMY, searchAnatomy, type AnatomicalStructure } from "@/data/anatomy";
+import { REGIONS, type BoneRegion } from "@/data/bones";
+import { getAgeGroupIds, getVisibleIds } from "@/data/skeletonGeometry";
+import type { SkeletonAgeGroup, SkeletonView } from "@/types/bone";
 
 export const Route = createFileRoute("/")({
   head: () => ({
