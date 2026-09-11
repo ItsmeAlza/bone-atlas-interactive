@@ -39,31 +39,36 @@ const VIEW_LABEL: Record<SkeletonView, string> = {
 };
 
 function SkeletonPage() {
-  // selection is anatomical, never per-view
+  // selection is anatomical — it survives both view and age-group changes
   const { selectedIds, selectedBones, toggle, clear } = useBoneSelection();
   const [view, setView] = useState<SkeletonView>("anterior");
+  const [ageGroup, setAgeGroup] = useState<SkeletonAgeGroup>("adult");
   const [query, setQuery] = useState("");
   const [region, setRegion] = useState<BoneRegion | "all">("all");
-  const [hovered, setHovered] = useState<BoneShape | null>(null);
+  const [hovered, setHovered] = useState<AnatomicalStructure | null>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
-  const visibleIds = useMemo(() => new Set(getViewBoneIds(view)), [view]);
+  const visibleIds = useMemo(() => new Set(getVisibleIds(ageGroup, view)), [ageGroup, view]);
+  const ageIds = useMemo(() => getAgeGroupIds(ageGroup), [ageGroup]);
 
   const disabledIds = useMemo(
-    () => (region === "all" ? [] : BONES.filter((b) => b.region !== region).map((b) => b.id)),
+    () => (region === "all" ? [] : ANATOMY.filter((b) => b.region !== region).map((b) => b.id)),
     [region],
   );
 
-  const results = useMemo(() => searchBones(query), [query]);
+  const results = useMemo(() => searchAnatomy(query, ageIds), [query, ageIds]);
 
-  const handleBoneClick = (bone: BoneShape) => {
-    // Example callback payload — { id, name, region, side, category, view }
+  const handleBoneClick = (bone: AnatomicalStructure) => {
+    // Example observation payload — identity is the anatomical id; age group
+    // and view are only context.
     console.log("onBoneClick", {
-      id: bone.id,
+      boneId: bone.id,
       name: bone.name,
       region: bone.region,
       side: bone.side,
       category: bone.category,
+      structureType: bone.structureType ?? "bone",
+      ageGroup,
       view,
     });
     toggle(bone.id);
@@ -75,7 +80,7 @@ function SkeletonPage() {
         <div>
           <h1 className="app-title">Interactive Human Skeleton</h1>
           <p className="app-subtitle">
-            {BONES.length} independently selectable bones · {VIEW_LABEL[view]} ·{" "}
+            {ageIds.size} independently selectable structures · {ageGroup} · {VIEW_LABEL[view]} ·{" "}
             {visibleIds.size} visible here
           </p>
         </div>
@@ -89,9 +94,11 @@ function SkeletonPage() {
 
       <main className="app-main">
         <section className="stage-panel" aria-label="Skeleton diagram">
+          <AgeGroupSelector value={ageGroup} onChange={setAgeGroup} />
           <ViewSelector value={view} onChange={setView} />
           <SkeletonViewer
             view={view}
+            ageGroup={ageGroup}
             selectedIds={selectedIds}
             disabledIds={disabledIds}
             highlightedId={highlightedId}
