@@ -1,17 +1,19 @@
 import type { MouseEvent } from "react";
-import { BONE_MAP, VIEWBOX, type BoneRegion, type BoneShape } from "@/data/bones";
-import { getViewShapes } from "@/data/skeletonViews";
-import type { SkeletonView, ViewShape } from "@/types/bone";
+import { VIEWBOX, type BoneRegion } from "@/data/bones";
+import { ANATOMY_MAP, type AnatomicalStructure } from "@/data/anatomy";
+import { getGeometry } from "@/data/skeletonGeometry";
+import type { SkeletonAgeGroup, SkeletonView, ViewShape } from "@/types/bone";
 import { Bone } from "./Bone";
 
 export type SkeletonProps = {
   view?: SkeletonView;
+  ageGroup?: SkeletonAgeGroup;
   selectedIds: string[];
   disabledIds?: string[];
   flaggedIds?: string[];
   highlightedId?: string | null;
-  onBoneClick: (bone: BoneShape) => void;
-  onBoneHover?: (bone: BoneShape | null, event?: MouseEvent) => void;
+  onBoneClick: (bone: AnatomicalStructure) => void;
+  onBoneHover?: (bone: AnatomicalStructure | null, event?: MouseEvent) => void;
 };
 
 const REGION_ORDER: BoneRegion[] = [
@@ -25,7 +27,7 @@ const REGION_ORDER: BoneRegion[] = [
   "foot",
 ];
 
-type Resolved = { shape: ViewShape; bone: BoneShape };
+type Resolved = { shape: ViewShape; bone: AnatomicalStructure };
 
 function RegionGroup({
   region,
@@ -38,6 +40,7 @@ function RegionGroup({
 }) {
   const {
     view = "anterior",
+    ageGroup = "adult",
     selectedIds,
     disabledIds = [],
     flaggedIds = [],
@@ -53,6 +56,7 @@ function RegionGroup({
           bone={bone}
           d={shape.d}
           view={view}
+          ageGroup={ageGroup}
           selected={selectedIds.includes(bone.id)}
           disabled={disabledIds.includes(bone.id)}
           flagged={flaggedIds.includes(bone.id)}
@@ -93,20 +97,26 @@ function Layer({
 }
 
 /**
- * Renders one anatomical view. Every bone is its own <path>, carrying the
- * view-independent anatomical id in `data-bone-id`.
+ * Renders one (age group, view) pair. Every structure is its own <path>,
+ * carrying the age- and view-independent anatomical id in `data-bone-id`.
  */
 export function Skeleton(props: SkeletonProps) {
   const view = props.view ?? "anterior";
-  const resolved: Resolved[] = getViewShapes(view)
-    .map((shape) => ({ shape, bone: BONE_MAP[shape.id] }))
+  const ageGroup = props.ageGroup ?? "adult";
+  const resolved: Resolved[] = getGeometry(ageGroup, view)
+    .map((shape) => ({ shape, bone: ANATOMY_MAP[shape.id] }))
     .filter((r): r is Resolved => Boolean(r.bone));
 
   const far = resolved.filter((r) => r.shape.layer === "far");
   const near = resolved.filter((r) => r.shape.layer === "near");
 
   return (
-    <g role="group" aria-label={`Human skeleton — ${view.replace("-", " ")} view`} data-view={view}>
+    <g
+      role="group"
+      aria-label={`Human skeleton — ${ageGroup}, ${view.replace("-", " ")} view`}
+      data-view={view}
+      data-age-group={ageGroup}
+    >
       <g className="bone-layer-far">
         <Layer items={far} mirrored={false} props={props} label="far" />
       </g>
