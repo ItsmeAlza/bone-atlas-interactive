@@ -319,6 +319,60 @@
     border-color: transparent;
   }
 
+  .age-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0.6rem 0.8rem 0.2rem;
+  }
+
+  .age-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.15;
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.6rem;
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-muted-foreground);
+    transition:
+      background 0.15s,
+      color 0.15s;
+  }
+  .age-btn:hover {
+    background: var(--color-secondary);
+    color: var(--color-foreground);
+  }
+  .age-btn.is-on {
+    background: var(--color-secondary);
+    color: var(--color-foreground);
+    border-color: var(--color-accent, var(--color-primary));
+  }
+  .age-btn-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+  .age-btn-note {
+    font-size: 0.65rem;
+    opacity: 0.7;
+  }
+
+  /* developmental structures read differently from ossified bone */
+  .bone.is-physis,
+  .bone.is-ossification-center,
+  .bone.is-fontanelle {
+    fill: color-mix(in oklab, var(--color-accent, #6ee7f9) 34%, transparent);
+    stroke: var(--color-accent, #6ee7f9);
+    stroke-dasharray: 3 2;
+    stroke-width: 0.8;
+  }
+  .bone.is-physis:hover,
+  .bone.is-ossification-center:hover,
+  .bone.is-fontanelle:hover {
+    fill: color-mix(in oklab, var(--color-accent, #6ee7f9) 60%, transparent);
+  }
+
   .bone-layer-far {
     opacity: 0.42;
   }
